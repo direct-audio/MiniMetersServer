@@ -3,14 +3,13 @@
 #include <JuceHeader.h>
 
 inline static const juce::Font& get_mm_font() {
-    static juce::Font wacky(juce::Font(juce::Typeface::createSystemTypefaceFor(SpaceMono_Bold_ttf, SpaceMono_Bold_ttf_len)));
-    return wacky;
+    static juce::Font font(juce::Font(juce::Typeface::createSystemTypefaceFor(SpaceMono_Bold_ttf, SpaceMono_Bold_ttf_len)));
+    return font;
 }
 
 class MiniMetersLookAndFeel : public juce::LookAndFeel_V4 {
 public:
-    MiniMetersLookAndFeel() {
-    }
+    MiniMetersLookAndFeel() {}
     void drawButtonBackground(juce::Graphics& g, juce::Button& button, const juce::Colour& backgroundColour, bool, bool isButtonDown) override {
         g.setColour({ 172, 192, 222 });
         g.fillRect(button.getLocalBounds());
