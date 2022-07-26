@@ -114,7 +114,9 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor() {
-    svr.stop();
+    while (svr.is_running()) {
+        svr.stop();
+    }
 }
 
 //==============================================================================
