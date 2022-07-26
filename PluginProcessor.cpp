@@ -66,18 +66,12 @@ void AudioPluginAudioProcessor::Server_Start() {
         });
 
         svr.Get("/check", [&](const httplib::Request&, httplib::Response& res) {
-            //            juce::String hostname = "yes";
-            //            GetHostStr(hostname);
-            std::string content = "yes";
+            std::string content = "Hostname";
             res.set_content(content, "text/plain");
         });
 
         svr.Get("/data", [&](const httplib::Request&, httplib::Response& res) {
-            juce::String tempstring = "yes";
-            //            GetHostStr(tempstring);
-            //            std::string content = std::string(tempstring.Get()) + '\n';
-            //            content += std::to_string(buffer_size);
-            res.set_content("content", "text/plain");
+            res.set_content("hey\n4096", "text/plain");
         });
 
         svr.Get("/ok", [&](const httplib::Request&, httplib::Response& res) {
