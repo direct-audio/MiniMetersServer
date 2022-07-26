@@ -84,8 +84,6 @@ void AudioPluginAudioProcessor::Server_Start() {
             set_button_state(StateNotPrimary);
         });
 
-        svr.set_mount_point("/", "/Users/Joe/Documents/Xcode Projects/iPlug-2-Projects/MiniMetersServer/");
-
         svr.listen("0.0.0.0", 8422);
     }).detach();
 }
