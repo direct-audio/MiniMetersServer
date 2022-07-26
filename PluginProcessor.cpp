@@ -1,7 +1,5 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-#define MINIAUDIO_IMPLEMENTATION
-#include "miniaudio.h"
 
 void AudioPluginAudioProcessor::Server_Setup() {
     if (!Server_CheckForOthers()) {
@@ -239,11 +237,11 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
         }
     }
 
-    ma_uint64 frameCountIn = n_samples;
-    ma_uint64 frameCountOut = 44100;
-    ma_resampler_process_pcm_frames(&resampler, &pre_resampling_input, &frameCountIn, &resampled_output, &frameCountOut);
+    uint64_t frame_count_in = n_samples;
+    uint64_t frame_count_out = 44100;
+    ma_resampler_process_pcm_frames(&resampler, &pre_resampling_input, &frame_count_in, &resampled_output, &frame_count_out);
 
-    for (int i = 0; i < frameCountOut * 2; i++) {
+    for (int i = 0; i < frame_count_out * 2; i++) {
         mm_buffer.write(resampled_output[i]);
     }
 }

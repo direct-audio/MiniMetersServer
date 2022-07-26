@@ -3,6 +3,8 @@
 #include "PluginProcessor.h"
 
 class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor {
+    MiniMetersLookAndFeel mm_look_and_feel;
+
 public:
     explicit AudioPluginAudioProcessorEditor(AudioPluginAudioProcessor&);
     ~AudioPluginAudioProcessorEditor() override;
@@ -13,7 +15,6 @@ public:
     juce::Image background;
 
 private:
-    MiniMetersLookAndFeel mm_look_and_feel;
     juce::TextButton primary_instance_button { "Click here to set this instance as the primary." };
 
     AudioPluginAudioProcessor& processorRef;

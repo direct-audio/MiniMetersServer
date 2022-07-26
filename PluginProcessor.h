@@ -1,7 +1,7 @@
 #pragma once
 #include "httplib.h"
+#include <JuceHeader.h>
 #include "miniaudio.h"
-#include <juce_audio_processors/juce_audio_processors.h>
 
 template <class T, size_t size, size_t n_consumers>
 class CircleBuffer {
@@ -41,7 +41,7 @@ public:
     }
 };
 
-class AudioPluginAudioProcessor : public juce::AudioProcessor {
+class AudioPluginAudioProcessor : public juce::AudioProcessor, public juce::AsyncUpdater {
 public:
     AudioPluginAudioProcessor();
     ~AudioPluginAudioProcessor() override;
@@ -78,11 +78,15 @@ public:
         StateNotPrimary,
         StateError,
     };
+
     std::atomic<ServerState> server_state;
-    void set_button_state(ServerState s) {
-        server_state = s;
+    void handleAsyncUpdate() override {
         if (editor_ptr)
             editor_ptr->repaint();
+    }
+    void set_button_state(ServerState s) {
+        server_state = s;
+        triggerAsyncUpdate();
     }
     void Server_MakePrimary();
 
@@ -95,7 +99,7 @@ private:
     ma_resampler resampler;
     void SetupResampler(double sample_rate);
     void CloseResampler();
-
+    MessageManagerLock m_message_manager_lock;
     // Server
     std::string b;
     char str[99];
