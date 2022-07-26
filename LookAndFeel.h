@@ -2,14 +2,12 @@
 #include "Assets/SpaceMono-Bold.h"
 #include <JuceHeader.h>
 
-inline static const juce::Font& get_mm_font() {
-    static juce::Font font(juce::Font(juce::Typeface::createSystemTypefaceFor(SpaceMono_Bold_ttf, SpaceMono_Bold_ttf_len)));
-    return font;
-}
-
 class MiniMetersLookAndFeel : public juce::LookAndFeel_V4 {
 public:
-    MiniMetersLookAndFeel() {}
+    MiniMetersLookAndFeel() {
+        minimeters_font = juce::Font(juce::Typeface::createSystemTypefaceFor(SpaceMono_Bold_ttf, SpaceMono_Bold_ttf_len));
+    }
+    juce::Font minimeters_font;
     void drawButtonBackground(juce::Graphics& g, juce::Button& button, const juce::Colour& backgroundColour, bool, bool isButtonDown) override {
         g.setColour({ 172, 192, 222 });
         g.fillRect(button.getLocalBounds());
@@ -17,7 +15,7 @@ public:
 
     void drawButtonText(juce::Graphics& g, juce::TextButton& button, bool, bool isButtonDown) override {
         auto font = getTextButtonFont(button, button.getHeight());
-        g.setFont(get_mm_font().withHeight(24));
+        g.setFont(minimeters_font.withHeight(24));
         g.setColour({ 0, 0, 0 });
 
         auto yIndent = juce::jmin(4, button.proportionOfHeight(0.3f));
