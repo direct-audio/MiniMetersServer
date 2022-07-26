@@ -1,7 +1,7 @@
 #pragma once
 #include "httplib.h"
-#include <JuceHeader.h>
 #include "miniaudio.h"
+#include <JuceHeader.h>
 
 template <class T, size_t size, size_t n_consumers>
 class CircleBuffer {
@@ -99,15 +99,13 @@ private:
     ma_resampler resampler;
     void SetupResampler(double sample_rate);
     void CloseResampler();
-    MessageManagerLock m_message_manager_lock;
     // Server
     std::string b;
     char str[99];
     httplib::Server svr;
     CircleBuffer<float, 88200, 1> mm_buffer;
     void Server_Setup();
-    void Server_StopOtherInstance();
-    bool Server_CheckForOthers();
+    bool Server_StopOtherInstance();
     void Server_Start();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessor)

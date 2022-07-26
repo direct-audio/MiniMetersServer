@@ -2,47 +2,50 @@
 #include "PluginEditor.h"
 
 void AudioPluginAudioProcessor::Server_Setup() {
-    if (!Server_CheckForOthers()) {
-        Server_Start();
-        set_button_state(StatePrimary);
-    } else {
-        set_button_state(StateNotPrimary);
-    }
-}
-
-void AudioPluginAudioProcessor::Server_StopOtherInstance() {
     httplib::Client cli("localhost", 8422);
-
     cli.set_read_timeout(1);
     cli.set_connection_timeout(1);
-    cli.Get("/stop");
-}
-
-void AudioPluginAudioProcessor::Server_MakePrimary() {
-    Server_StopOtherInstance();
+    // Server exists at localhost:8422
+    if (auto res = cli.Get("/check")) {
+        if (res->status == 200) {
+            // /check exists and connection is good.
+            // we are certain that another instance of the plugin exists.
+            set_button_state(StateNotPrimary);
+            std::cout << "not primary" << std::endl;
+            return;
+        } else if (res->status == 404) {
+            // Server exists but /check does not.
+            set_button_state(StateError);
+            return;
+        }
+    }
+    // No server exists. We are the primary instance.
     set_button_state(StatePrimary);
     Server_Start();
 }
 
-bool AudioPluginAudioProcessor::Server_CheckForOthers() {
-    {
-        //    // Here we spin up the server to see if anything other than other AudioPluginAudioProcessor instances are running.
-        //    httplib::Server test_server;
-        //    if (!test_server.listen("0.0.0.0", 8422)) {
-        //      state = StateError;
-        //      return false;
-        //    }
-    }
-
+bool AudioPluginAudioProcessor::Server_StopOtherInstance() {
     httplib::Client cli("localhost", 8422);
 
     cli.set_read_timeout(1);
     cli.set_connection_timeout(1);
-    if (auto res = cli.Get("/check")) {
-        if (res->status == 200)
-            return true;
+    auto res = cli.Get("/stop");
+    if (res->status == 200) {
+        // server has received the call and is stopping.
+        set_button_state(StatePrimary);
+        return true;
+    } else if (res->status == 404) {
+        // server is likely not a MiniMetersServer instance.
+        set_button_state(StateError);
+        return false;
     }
     return false;
+}
+
+void AudioPluginAudioProcessor::Server_MakePrimary() {
+    if (Server_StopOtherInstance()) {
+        Server_Start();
+    }
 }
 
 void AudioPluginAudioProcessor::Server_Start() {
@@ -237,8 +240,8 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
         }
     }
 
-    uint64_t frame_count_in = n_samples;
-    uint64_t frame_count_out = 44100;
+    ma_uint64 frame_count_in = n_samples;
+    ma_uint64 frame_count_out = 44100;
     ma_resampler_process_pcm_frames(&resampler, &pre_resampling_input, &frame_count_in, &resampled_output, &frame_count_out);
 
     for (int i = 0; i < frame_count_out * 2; i++) {

@@ -4,7 +4,7 @@
 
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudioProcessor& p)
     : AudioProcessorEditor(&p)
-    , processorRef(p){
+    , processorRef(p) {
     juce::ignoreUnused(processorRef);
     setLookAndFeel(&mm_look_and_feel);
     addAndMakeVisible(primary_instance_button);
@@ -26,11 +26,23 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g) {
     g.setColour(juce::Colours::white);
     g.setFont(mm_look_and_feel.minimeters_font.withHeight(24));
     if (processorRef.server_state == processorRef.StatePrimary) {
-        g.drawFittedText("Currently sending audio to MiniMeters.", juce::Rectangle<int>(305, 0, getWidth() - 305, getHeight()), juce::Justification::centred, 1);
+        g.drawFittedText("Currently sending audio to MiniMeters.",
+                         juce::Rectangle<int>(305, 0, getWidth() - 305, getHeight()),
+                             juce::Justification::centred, 1);
+
         primary_instance_button.setVisible(false);
     } else if (processorRef.server_state == processorRef.StateNotPrimary) {
-        g.drawFittedText("Another instance is sending audio to MiniMeters.", juce::Rectangle<int>(305, - 50, getWidth() - 305, getHeight()), juce::Justification::centred, 1);
+        g.drawFittedText("Another instance is sending audio to MiniMeters.",
+                         juce::Rectangle<int>(305, -50, getWidth() - 305, getHeight()),
+                             juce::Justification::centred, 1);
+
         primary_instance_button.setVisible(true);
+    } else if (processorRef.server_state == processorRef.StateError) {
+        g.drawFittedText("An error occurred while trying to access port 8422.\nPlease contact support.",
+                         juce::Rectangle<int>(305, 0, getWidth() - 305, getHeight()),
+                             juce::Justification::centred, 2);
+
+        primary_instance_button.setVisible(false);
     }
 }
 
