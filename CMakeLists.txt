@@ -1,18 +1,21 @@
 cmake_minimum_required(VERSION 3.15)
-project(MiniMetersServer VERSION 0.0.1)
+project(MiniMetersServer VERSION 1.0.1)
+set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
 add_subdirectory(JUCE)
+
 juce_add_plugin(MiniMetersServer
-        # VERSION ...                               # Set this if the plugin version is different to the project version
-        # ICON_BIG ...                              # ICON_* arguments specify a path to an image file to use as an icon for the Standalone
-        # ICON_SMALL ...
-        COMPANY_NAME "Direct"
+        COMPANY_NAME Direct
+        COMPANY_WEBSITE https://minimeters.app/
+        COMPANY_EMAIL contact@directmusic.me
+        VST3_CATEGORIES Fx Tools
+        AU_MAIN_TYPE kAudioUnitType_Effect
         IS_MIDI_EFFECT FALSE
         EDITOR_WANTS_KEYBOARD_FOCUS FALSE
         COPY_PLUGIN_AFTER_BUILD TRUE
         PLUGIN_MANUFACTURER_CODE Jldr
         PLUGIN_CODE mmsv
         FORMATS AU VST3 Standalone
-        PRODUCT_NAME "MiniMetersServer")
+        PRODUCT_NAME MiniMetersServer)
 
 
 juce_generate_juce_header(MiniMetersServer)
@@ -26,6 +29,7 @@ target_sources(MiniMetersServer
         PRIVATE
         Assets/SpaceMono-Bold.cpp
         Assets/bg.cpp
+        ma_implementation_file.cpp
         PluginEditor.cpp
         PluginProcessor.cpp)
 
