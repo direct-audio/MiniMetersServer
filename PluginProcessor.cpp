@@ -57,7 +57,7 @@ void AudioPluginAudioProcessor::Server_Start() {
         svr.new_task_queue = [] { return new httplib::ThreadPool(1); };
         svr.Get("/hi", [&](const httplib::Request&, httplib::Response& res) {
             while (!mm_buffer.is_empty<0>()) {
-                sprintf(str, "%f;", mm_buffer.read<0>());
+                sprintf(str, "%fn", mm_buffer.read<0>());
                 b += str;
             }
             res.set_content(b.c_str(), "text/plain");
