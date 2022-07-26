@@ -1,0 +1,51 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          #          - {
+          #            name: "Windows: MinGW",
+          #            os: [ self-hosted, linux ], script: "win_build.sh", output_dir: "build_windows"
+          #          }
+          - {
+            name: "Linux",
+            os: [ self-hosted, linux ], script: "build_linux.sh", output_dir: "./"
+          }
+          - {
+            name: "macOS",
+            os: [ self-hosted, macos ], script: "build_macos.sh", output_dir: "./"
+          }
+
+    runs-on: ${{matrix.config.os}}
+    name: ${{matrix.config.name}}
+    steps:
+
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v2
+        with:
+          ref: master
+          submodules: recursive
+
+      - name: Run build.sh
+        working-directory: ${{github.workspace}}/
+        run: ./${{matrix.config.script}}
+
+      - name: Deploy to Dropbox
+        uses: aTable/deploy-to-dropbox@v1.0.7
+        with:
+          DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
+          DROPBOX_DESTINATION_PATH_PREFIX: "/plugin-build-${{github.run_number}}-${{github.sha}}/"
+          GLOB: "${{matrix.config.output_dir}}/releases/*"
+          DEBUG: false
+
