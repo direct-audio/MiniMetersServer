@@ -68,8 +68,9 @@ void AudioPluginAudioProcessor::Server_Start() {
         });
 
         svr.Get("/check", [&](const httplib::Request&, httplib::Response& res) {
-            std::string content = "Hostname";
-            res.set_content(content, "text/plain");
+            PluginHostType p;
+            auto host_name = p.getHostDescription();
+            res.set_content(host_name, "text/plain");
         });
 
         svr.Get("/data", [&](const httplib::Request&, httplib::Response& res) {
