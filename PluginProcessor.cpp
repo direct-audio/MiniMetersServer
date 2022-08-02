@@ -86,11 +86,6 @@ void AudioPluginAudioProcessor::Server_Start() {
             res.set_content(j.dump(4), "text/plain");
         });
 
-        svr.Get("/ok", [&](const httplib::Request&, httplib::Response& res) {
-            svr.stop();
-            return;
-        });
-
         svr.Get("/stop", [&](const httplib::Request&, httplib::Response& res) {
             svr.stop();
             set_button_state(StateNotPrimary);
