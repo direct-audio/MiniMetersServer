@@ -1,5 +1,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "json.hpp"
+#include <JuceHeader.h>
 
 void AudioPluginAudioProcessor::Server_Setup() {
     httplib::Client cli("localhost", 8422);
@@ -71,7 +73,16 @@ void AudioPluginAudioProcessor::Server_Start() {
         });
 
         svr.Get("/data", [&](const httplib::Request&, httplib::Response& res) {
-            res.set_content("hey\n4096", "text/plain");
+            PluginHostType p;
+            auto block_size = getBlockSize();
+            auto sr = getSampleRate();
+            auto host_name = p.getHostDescription();
+
+            nlohmann::json j;
+            j["block_size"] = block_size;
+            j["sr"] = sr;
+            j["host_name"] = host_name;
+            res.set_content(j.dump(4), "text/plain");
         });
 
         svr.Get("/ok", [&](const httplib::Request&, httplib::Response& res) {
