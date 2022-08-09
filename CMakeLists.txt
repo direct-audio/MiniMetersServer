@@ -46,6 +46,7 @@ target_compile_definitions(MiniMetersServer
         JUCE_WEB_BROWSER=0  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_plugin` call
         JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
         JUCE_DISPLAY_SPLASH_SCREEN=0
+        REPORT_JUCE_APP_USAGE=0
         JUCE_VST3_CAN_REPLACE_VST2=0)
 
 # If your target needs extra binary assets, you can add them here. The first argument is the name of
