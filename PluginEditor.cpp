@@ -16,6 +16,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudi
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {
+    processorRef.editor_ptr = nullptr;
     setLookAndFeel(nullptr);
 }
 
