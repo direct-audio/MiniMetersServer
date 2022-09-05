@@ -14,7 +14,6 @@ void AudioPluginAudioProcessor::Server_Setup() {
             // /check exists and connection is good.
             // we are certain that another instance of the plugin exists.
             set_button_state(StateNotPrimary);
-            std::cout << "not primary" << std::endl;
             return;
         } else if (res->status == 404) {
             // Server exists but /check does not.
