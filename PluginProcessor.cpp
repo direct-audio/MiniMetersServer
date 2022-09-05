@@ -73,17 +73,24 @@ void AudioPluginAudioProcessor::Server_Start() {
             res.set_content(host_name, "text/plain");
         });
 
-        svr.Get("/data", [&](const httplib::Request&, httplib::Response& res) {
+        svr.Get("/data", [&](const httplib::Request& req, httplib::Response& res) {
+            auto version_str = req.get_param_value("version");
+
             PluginHostType p;
             auto block_size = getBlockSize();
             auto sr = getSampleRate();
             auto host_name = p.getHostDescription();
 
-            nlohmann::json j;
-            j["block_size"] = block_size;
-            j["sr"] = sr;
-            j["host_name"] = host_name;
-            res.set_content(j.dump(4), "text/plain");
+            if (!version_str.empty()) {
+                nlohmann::json j;
+                j["block_size"] = block_size;
+                j["sr"] = sr;
+                j["host_name"] = host_name;
+                res.set_content(j.dump(4), "text/plain");
+            } else {
+                // Versions prior to 0.8.4
+                res.set_content(std::string(host_name) + '\n' + std::to_string(block_size), "text/plain");
+            }
         });
 
         svr.Get("/stop", [&](const httplib::Request&, httplib::Response& res) {
