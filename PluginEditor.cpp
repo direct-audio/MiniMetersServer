@@ -13,6 +13,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudi
         repaint();
     };
     setSize(800, 350);
+    background = juce::ImageCache::getFromMemory(bg_png, bg_png_len);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {
