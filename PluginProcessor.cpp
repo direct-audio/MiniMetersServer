@@ -8,7 +8,8 @@ void AudioPluginAudioProcessor::Server_Setup() {
     cli.set_read_timeout(1);
     cli.set_connection_timeout(1);
     // Server exists at localhost:8422
-    if (auto res = cli.Get("/check")) {
+    auto res = cli.Get("/check");
+    if (res) {
         if (res->status == 200) {
             // /check exists and connection is good.
             // we are certain that another instance of the plugin exists.
@@ -32,6 +33,9 @@ bool AudioPluginAudioProcessor::Server_StopOtherInstance() {
     cli.set_read_timeout(1);
     cli.set_connection_timeout(1);
     auto res = cli.Get("/stop");
+    if (!res)
+        return false;
+
     if (res->status == 200) {
         // server has received the call and is stopping.
         set_button_state(StatePrimary);
