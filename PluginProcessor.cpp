@@ -231,6 +231,10 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
         buffer.clear(i, 0, buffer.getNumSamples());
     const int n_samples = buffer.getNumSamples();
 
+    // The DAW should really never send a buffer the larger than 65536 samples, but in the case that it does.
+    if (n_samples >= pre_resampling_input.size())
+        return;
+
     if (totalNumInputChannels == 1) {
         auto ptr_l = buffer.getReadPointer(0);
 
