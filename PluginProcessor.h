@@ -92,8 +92,9 @@ public:
 
 private:
     // Resampling
-    float resampled_output[65536 * 2];
-    float pre_resampling_input[65536 * 2];
+    std::array<float, 65536 * 2> resampled_output;
+    std::array<float, 65536 * 2> pre_resampling_input;
+
     std::atomic<double> resamplerSampleRate;
     ma_resampler_config config;
     ma_resampler resampler;
