@@ -33,6 +33,12 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g) {
                              juce::Justification::centred, 1);
 
         primary_instance_button.setVisible(false);
+    } else if (processorRef.server_state == processorRef.StateCannotFindMiniMeters) {
+        g.drawFittedText("Cannot connect to MiniMeters. Please ensure the standalone MiniMeters instance is open.",
+                         juce::Rectangle<int>(305, 0, getWidth() - 305, getHeight()),
+                         juce::Justification::centred, 1);
+
+        primary_instance_button.setVisible(false);
     } else if (processorRef.server_state == processorRef.StateNotPrimary) {
         g.drawFittedText("Another instance is sending audio to MiniMeters.",
                          juce::Rectangle<int>(305, -50, getWidth() - 305, getHeight()),

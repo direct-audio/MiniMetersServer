@@ -72,10 +72,11 @@ public:
 
     void getStateInformation(juce::MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
-
+    // TODO: Have proper handshake between MiniMeters and the plugin.
     enum ServerState {
         StatePrimary = 0,
         StateNotPrimary,
+        StateCannotFindMiniMeters,
         StateError,
     };
 
