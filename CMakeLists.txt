@@ -11,6 +11,8 @@ juce_add_plugin(MiniMetersServer
         VST3_CATEGORIES Fx Tools
         AU_MAIN_TYPE kAudioUnitType_Effect
         IS_MIDI_EFFECT FALSE
+        NEEDS_MIDI_INPUT FALSE
+        NEEDS_MIDI_OUTPUT FALSE
         EDITOR_WANTS_KEYBOARD_FOCUS FALSE
         COPY_PLUGIN_AFTER_BUILD TRUE
         PLUGIN_MANUFACTURER_CODE Jldr
