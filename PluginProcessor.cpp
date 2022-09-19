@@ -56,9 +56,7 @@ void AudioPluginAudioProcessor::Server_MakePrimary() {
 void AudioPluginAudioProcessor::Server_Start() {
     b.resize(65536);
     std::thread([this]() {
-        const int sample_timeout = 4096;
-        const float delay = float(sample_timeout) / 44100.f;
-        svr.set_read_timeout(delay);
+        svr.set_read_timeout(0, 10000); // 10ms
         svr.new_task_queue = [] { return new httplib::ThreadPool(1); };
         svr.Get("/hi", [&](const httplib::Request&, httplib::Response& res) {
             while (!mm_buffer.is_empty<0>()) {
