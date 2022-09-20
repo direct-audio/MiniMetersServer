@@ -1,16 +1,22 @@
 cmake_minimum_required(VERSION 3.15)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version" FORCE)
-project(MiniMetersServer VERSION 1.0.1)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+project(MiniMetersServer VERSION 1.0.2)
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
+
+
 add_subdirectory(JUCE)
+
 
 juce_add_plugin(MiniMetersServer
         COMPANY_NAME Direct
         COMPANY_WEBSITE https://minimeters.app/
         COMPANY_EMAIL contact@directmusic.me
+        BUNDLE_ID com.josephlyncheski.MiniMetersServer
         VST3_CATEGORIES Fx Tools
         AU_MAIN_TYPE kAudioUnitType_Effect
         IS_MIDI_EFFECT FALSE
+        IS_SYNTH FALSE
         NEEDS_MIDI_INPUT FALSE
         NEEDS_MIDI_OUTPUT FALSE
         EDITOR_WANTS_KEYBOARD_FOCUS FALSE
@@ -18,7 +24,8 @@ juce_add_plugin(MiniMetersServer
         PLUGIN_MANUFACTURER_CODE Jldr
         PLUGIN_CODE mmsv
         FORMATS AU VST3 Standalone
-        PRODUCT_NAME MiniMetersServer)
+        PRODUCT_NAME "MiniMetersServer")
+
 
 juce_generate_juce_header(MiniMetersServer)
 
@@ -66,6 +73,8 @@ target_compile_definitions(MiniMetersServer
 # linked automatically. If we'd generated a binary data target above, we would need to link to it
 # here too. This is a standard CMake command.
 
+
+
 target_link_libraries(MiniMetersServer
         PRIVATE
         # AudioPluginData           # If we'd created a binary data target, we'd link to it here
@@ -74,3 +83,4 @@ target_link_libraries(MiniMetersServer
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
+
