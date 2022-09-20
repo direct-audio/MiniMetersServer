@@ -56,6 +56,7 @@ void AudioPluginAudioProcessor::Server_MakePrimary() {
 void AudioPluginAudioProcessor::Server_Start() {
     b.resize(65536);
     std::thread([this]() {
+        server_has_finished = false;
         svr.set_read_timeout(0, 10000); // 10ms
         svr.new_task_queue = [] { return new httplib::ThreadPool(1); };
         svr.Get("/hi", [&](const httplib::Request&, httplib::Response& res) {
@@ -100,6 +101,7 @@ void AudioPluginAudioProcessor::Server_Start() {
         });
 
         svr.listen("0.0.0.0", 8422);
+        server_has_finished = true;
     }).detach();
 }
 
@@ -132,6 +134,9 @@ AudioPluginAudioProcessor::~AudioPluginAudioProcessor() {
     editor_ptr = nullptr;
     if (svr.is_running()) {
         svr.stop();
+        while (server_has_finished == false) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
     }
 }
 
