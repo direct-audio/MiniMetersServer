@@ -9,14 +9,22 @@ public:
     }
     juce::Font minimeters_font;
     void drawButtonBackground(juce::Graphics& g, juce::Button& button, const juce::Colour& backgroundColour, bool, bool isButtonDown) override {
-        g.setColour({ 172, 192, 222 });
+        if (isButtonDown) {
+            g.setColour({ 172 / 2, 192 / 2, 222 / 2 });
+        } else {
+            g.setColour({ 172, 192, 222 });
+        }
         g.fillRect(button.getLocalBounds());
     }
 
     void drawButtonText(juce::Graphics& g, juce::TextButton& button, bool, bool isButtonDown) override {
         auto font = getTextButtonFont(button, button.getHeight());
         g.setFont(minimeters_font.withHeight(24));
-        g.setColour({ 0, 0, 0 });
+        if (isButtonDown) {
+            g.setColour({ 255, 255, 255 });
+        } else {
+            g.setColour({ 0, 0, 0 });
+        }
 
         auto yIndent = juce::jmin(4, button.proportionOfHeight(0.3f));
         auto cornerSize = juce::jmin(button.getHeight(), button.getWidth()) / 2;
