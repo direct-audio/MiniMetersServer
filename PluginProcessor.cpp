@@ -6,6 +6,14 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <fcntl.h>
+#include <stdio.h>
+#include <sys/mman.h>
+#include <sys/shm.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 void AudioPluginAudioProcessor::Server_Setup() {
     httplib::Client cli("localhost", 8422);
     cli.set_read_timeout(1);
@@ -118,23 +126,63 @@ void AudioPluginAudioProcessor::SetupResampler(double sample_rate) {
 }
 void AudioPluginAudioProcessor::CloseResampler() { ma_resampler_uninit(&resampler, nullptr); }
 
+// Note: This is not really a valid UUID. I believe this has 64bits of
+//       randomness which should be sufficient for this plugin, but we
+//       might want to replace it in the future.
+std::string get_uuid() {
+    static std::random_device dev;
+    static std::mt19937 rng(dev());
+
+    std::uniform_int_distribution<int> dist(0, 15);
+
+    const char* v = "0123456789abcdef";
+    const int dash[] = { 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0 };
+
+    std::string res;
+    for (int i : dash) {
+        if (i)
+            res += "-";
+        res += v[dist(rng)];
+        res += v[dist(rng)];
+    }
+    return res;
+}
+// Note:: This is likely increasing our collision rate, but this is faster to
+//        compare when the plugin is actually running.
+int64_t compute_hash(std::string const& s) {
+    const int p = 31;
+    const int m = 1e9 + 9;
+    int64_t hash_value = 0;
+    int64_t p_pow = 1;
+    for (char c : s) {
+        hash_value = (hash_value + (c - 'a' + 1) * p_pow) % m;
+        p_pow = (p_pow * p) % m;
+    }
+    return hash_value;
+}
+
+void AudioPluginAudioProcessor::ipc_make_primary() {
+    ptr->current_id = uuid_hash;
+    set_button_state(StatePrimary);
+}
+
 void AudioPluginAudioProcessor::ipc_setup() {
-    sem_prod = sem_open("/producer", 0);
-    if (sem_prod == SEM_FAILED) {
-        perror("sem_open/producer");
-        exit(EXIT_FAILURE);
+    int fd = shm_open(IPC_FILE_NAME, O_CREAT | O_RDWR, 0666);
+    if (fd >= 0) {
+        ftruncate(fd, BLOCK_SIZE);
+    } else {
+        // We failed to create here so lets try not to create and instead open the already existing.
+        fd = shm_open(IPC_FILE_NAME, O_RDWR, 0666);
     }
 
-    sem_cons = sem_open("/consumer", 0);
-    if (sem_cons == SEM_FAILED) {
-        perror("sem_open/consumer");
-        exit(EXIT_FAILURE);
+    ptr = nullptr;
+    ptr = (IPC_TYPE*)mmap(nullptr, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (ptr == nullptr) {
+        printf("Error when getting mmap()\n");
+        return;
     }
-    block = reinterpret_cast<IPC_TYPE *>(attach_memory_block("/home/joe/ipc1/writeshmem.c", BLOCK_SIZE));
-//    block = new IPC_TYPE;
-    if (block == nullptr) {
-        printf("COULD NOT GET BLOCK\n");
-    }
+
+    ipc_make_primary();
 }
 
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
@@ -146,10 +194,10 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
                          .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
     ) {
-
+    uuid_hash = compute_hash(get_uuid());
     resamplerSampleRate = getSampleRate();
     SetupResampler(resamplerSampleRate);
-    Server_Setup();
+    //    Server_Setup();
     ipc_setup();
 }
 
@@ -157,7 +205,7 @@ AudioPluginAudioProcessor::~AudioPluginAudioProcessor() {
     editor_ptr = nullptr;
     if (svr.is_running()) {
         svr.stop();
-        while (server_has_finished == false) {
+        while (!server_has_finished) {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
     }
@@ -253,14 +301,19 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
+    if (uuid_hash != ptr->current_id) {
+        if (get_button_state() != ServerState::StateNotPrimary) {
+            set_button_state(ServerState::StateNotPrimary);
+        }
+        return;
+    }
+
     // blank unused channels
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear(i, 0, buffer.getNumSamples());
     const int n_samples = buffer.getNumSamples();
 
     // The DAW should really never send a buffer the larger than 65536 samples, but in the case that it does.
-    if (n_samples >= 4096)
-        return;
     if (n_samples >= pre_resampling_input.size())
         return;
 
@@ -289,24 +342,11 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     // This temporary only exists for a short time, but the pointer to the
     // data will be fully read by the time the loop continues.
 
-    // TODO: this shuold be wrapped in a ring buffer that is placed in the
-    //       plugin's class members. Then we can send the pointer to the
-    //       ring buffer to the receiver so it can safely call that.
-//    MM::IpcChunk temp{};
-//    for (size_t i = 0; i < 512; i++) {
-//        temp.buffer[i] = resampled_output[i];
-//    }
-
-    static int i = 0;
-//    (*block).buffer[0] = i;
-    block->write(i);
-    i++;
-
-    sem_wait(sem_cons);
-//    block = &ipc_audio_buffer;
-//    *block = i;
-
-    sem_post(sem_prod);
+    for (size_t i = 0; i < frame_count_out * 2; i++) {
+        ptr->buffer.write(resampled_output[i]);
+    }
+    ptr->sample_rate = getSampleRate();
+    ptr->block_size = getBlockSize();
 }
 
 bool AudioPluginAudioProcessor::hasEditor() const {

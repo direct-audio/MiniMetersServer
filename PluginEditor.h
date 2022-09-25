@@ -16,6 +16,7 @@ public:
 
 private:
     juce::TextButton primary_instance_button { "Click here to set this instance as the primary." };
+    juce::TextButton reset_button { "Reset" };
 
     AudioPluginAudioProcessor& processorRef;
 

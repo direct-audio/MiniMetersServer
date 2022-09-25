@@ -1,5 +1,5 @@
 #pragma once
-#include "/home/joe/ipc1/SharedMemory.h"
+#include "SharedMemory.h"
 #include "httplib.h"
 #include "miniaudio.h"
 #include <JuceHeader.h>
@@ -87,11 +87,19 @@ public:
         if (editor_ptr)
             editor_ptr->repaint();
     }
+
     void set_button_state(ServerState s) {
         server_state = s;
         triggerAsyncUpdate();
     }
+
+    ServerState get_button_state() const {
+        return server_state;
+    }
+
     void Server_MakePrimary();
+    void ipc_make_primary();
+    void ipc_setup();
 
 private:
     // Resampling
@@ -99,6 +107,7 @@ private:
     std::array<float, 65536 * 2> pre_resampling_input;
 
     std::atomic<double> resamplerSampleRate;
+    int64_t uuid_hash = 0;
     ma_resampler_config config;
     ma_resampler resampler;
     void SetupResampler(double sample_rate);
@@ -106,7 +115,7 @@ private:
     // Server
     std::string b;
     char str[99];
-    IPC_TYPE* block;
+    IPC_TYPE* ptr;
     sem_t* sem_prod;
     sem_t* sem_cons;
     httplib::Server svr;
@@ -115,8 +124,6 @@ private:
     void Server_Setup();
     bool Server_StopOtherInstance();
     void Server_Start();
-
-    void ipc_setup();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessor)
 };
