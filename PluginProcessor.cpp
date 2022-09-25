@@ -2,6 +2,9 @@
 #include "PluginEditor.h"
 #include "json.hpp"
 #include <JuceHeader.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 void AudioPluginAudioProcessor::Server_Setup() {
     httplib::Client cli("localhost", 8422);
@@ -115,6 +118,25 @@ void AudioPluginAudioProcessor::SetupResampler(double sample_rate) {
 }
 void AudioPluginAudioProcessor::CloseResampler() { ma_resampler_uninit(&resampler, nullptr); }
 
+void AudioPluginAudioProcessor::ipc_setup() {
+    sem_prod = sem_open("/producer", 0);
+    if (sem_prod == SEM_FAILED) {
+        perror("sem_open/producer");
+        exit(EXIT_FAILURE);
+    }
+
+    sem_cons = sem_open("/consumer", 0);
+    if (sem_cons == SEM_FAILED) {
+        perror("sem_open/consumer");
+        exit(EXIT_FAILURE);
+    }
+    block = reinterpret_cast<IPC_TYPE *>(attach_memory_block("/home/joe/ipc1/writeshmem.c", BLOCK_SIZE));
+//    block = new IPC_TYPE;
+    if (block == nullptr) {
+        printf("COULD NOT GET BLOCK\n");
+    }
+}
+
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     : AudioProcessor(BusesProperties()
 #if !JucePlugin_IsMidiEffect
@@ -128,6 +150,7 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     resamplerSampleRate = getSampleRate();
     SetupResampler(resamplerSampleRate);
     Server_Setup();
+    ipc_setup();
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor() {
@@ -224,7 +247,6 @@ bool AudioPluginAudioProcessor::isBusesLayoutSupported(const BusesLayout& layout
     return true;
 #endif
 }
-
 void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
                                              juce::MidiBuffer& midiMessages) {
     juce::ScopedNoDenormals noDenormals;
@@ -237,6 +259,8 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     const int n_samples = buffer.getNumSamples();
 
     // The DAW should really never send a buffer the larger than 65536 samples, but in the case that it does.
+    if (n_samples >= 4096)
+        return;
     if (n_samples >= pre_resampling_input.size())
         return;
 
@@ -262,10 +286,27 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     ma_uint64 frame_count_in = n_samples;
     ma_uint64 frame_count_out = 44100;
     ma_resampler_process_pcm_frames(&resampler, &pre_resampling_input, &frame_count_in, &resampled_output, &frame_count_out);
+    // This temporary only exists for a short time, but the pointer to the
+    // data will be fully read by the time the loop continues.
 
-    for (int i = 0; i < frame_count_out * 2; i++) {
-        mm_buffer.write(resampled_output[i]);
-    }
+    // TODO: this shuold be wrapped in a ring buffer that is placed in the
+    //       plugin's class members. Then we can send the pointer to the
+    //       ring buffer to the receiver so it can safely call that.
+//    MM::IpcChunk temp{};
+//    for (size_t i = 0; i < 512; i++) {
+//        temp.buffer[i] = resampled_output[i];
+//    }
+
+    static int i = 0;
+//    (*block).buffer[0] = i;
+    block->write(i);
+    i++;
+
+    sem_wait(sem_cons);
+//    block = &ipc_audio_buffer;
+//    *block = i;
+
+    sem_post(sem_prod);
 }
 
 bool AudioPluginAudioProcessor::hasEditor() const {

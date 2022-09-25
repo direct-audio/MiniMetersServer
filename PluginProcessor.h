@@ -1,7 +1,9 @@
 #pragma once
+#include "/home/joe/ipc1/SharedMemory.h"
 #include "httplib.h"
 #include "miniaudio.h"
 #include <JuceHeader.h>
+#include <semaphore.h>
 
 template <class T, size_t size, size_t n_consumers>
 class CircleBuffer {
@@ -104,12 +106,17 @@ private:
     // Server
     std::string b;
     char str[99];
+    IPC_TYPE* block;
+    sem_t* sem_prod;
+    sem_t* sem_cons;
     httplib::Server svr;
     CircleBuffer<float, 88200, 1> mm_buffer;
     std::atomic<bool> server_has_finished = false;
     void Server_Setup();
     bool Server_StopOtherInstance();
     void Server_Start();
+
+    void ipc_setup();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessor)
 };
