@@ -1,22 +1,28 @@
+#include <JuceHeader.h>
+
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "json.hpp"
-#include <JuceHeader.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
 #include <fcntl.h>
 #include <stdio.h>
+#include <random>
+
 #ifndef WIN32
 #include <sys/mman.h>
 #include <sys/shm.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#endif
 #include <unistd.h>
+#else
+#include "windows.h"
+#endif
 
 void AudioPluginAudioProcessor::Server_Setup() {
+    /*
     httplib::Client cli("localhost", 8422);
     cli.set_read_timeout(1);
     cli.set_connection_timeout(1);
@@ -37,9 +43,11 @@ void AudioPluginAudioProcessor::Server_Setup() {
     // No server exists. We are the primary instance.
     set_button_state(StatePrimary);
     Server_Start();
+     */
 }
 
 bool AudioPluginAudioProcessor::Server_StopOtherInstance() {
+    /*
     httplib::Client cli("localhost", 8422);
 
     cli.set_read_timeout(1);
@@ -58,6 +66,8 @@ bool AudioPluginAudioProcessor::Server_StopOtherInstance() {
         return false;
     }
     return false;
+     */
+    return false;
 }
 
 void AudioPluginAudioProcessor::Server_MakePrimary() {
@@ -67,6 +77,7 @@ void AudioPluginAudioProcessor::Server_MakePrimary() {
 }
 
 void AudioPluginAudioProcessor::Server_Start() {
+    /*
     b.resize(65536);
     std::thread([this]() {
         server_has_finished = false;
@@ -116,6 +127,7 @@ void AudioPluginAudioProcessor::Server_Start() {
         svr.listen("0.0.0.0", 8422);
         server_has_finished = true;
     }).detach();
+     */
 }
 
 void AudioPluginAudioProcessor::SetupResampler(double sample_rate) {
@@ -196,6 +208,12 @@ void AudioPluginAudioProcessor::ipc_setup() {
         IPC_FILE_NAME);
     if (hMapFile == nullptr) {
         // Failure
+        if (GetLastError() == ERROR_ALREADY_EXISTS) {
+
+        }
+        char msg[999];
+        sprintf(msg, "ERROR: %lu", GetLastError());
+        MessageBox(0, msg, "Title", MB_OK);
         return;
     }
     ptr = (IPC_TYPE*)MapViewOfFile(hMapFile,
@@ -204,7 +222,7 @@ void AudioPluginAudioProcessor::ipc_setup() {
                                    0,
                                    IPC_BLOCK_SIZE);
     if (ptr == nullptr) {
-        LOG("Error when getting MapViewOfFile()");
+        MessageBox(0, "Error when getting MapViewOfFile()", "Title", MB_OK);
         return;
     }
 #endif
@@ -230,12 +248,14 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor() {
     editor_ptr = nullptr;
+    /*
     if (svr.is_running()) {
         svr.stop();
         while (!server_has_finished) {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
     }
+     */
 }
 
 //==============================================================================

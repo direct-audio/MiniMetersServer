@@ -1,9 +1,9 @@
 #pragma once
 #include "SharedMemory.h"
-#include "httplib.h"
 #include "miniaudio.h"
 #include <JuceHeader.h>
-#include <semaphore.h>
+
+//#include "httplib.h"
 
 template <class T, size_t size, size_t n_consumers>
 class CircleBuffer {
@@ -116,9 +116,7 @@ private:
     std::string b;
     char str[99];
     IPC_TYPE* ptr;
-    sem_t* sem_prod;
-    sem_t* sem_cons;
-    httplib::Server svr;
+//    httplib::Server svr;
     CircleBuffer<float, 88200, 1> mm_buffer;
     std::atomic<bool> server_has_finished = false;
     void Server_Setup();
