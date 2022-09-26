@@ -8,10 +8,12 @@
 
 #include <fcntl.h>
 #include <stdio.h>
+#ifndef WIN32
 #include <sys/mman.h>
 #include <sys/shm.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#endif
 #include <unistd.h>
 
 void AudioPluginAudioProcessor::Server_Setup() {
@@ -167,6 +169,7 @@ void AudioPluginAudioProcessor::ipc_make_primary() {
 }
 
 void AudioPluginAudioProcessor::ipc_setup() {
+#ifndef WIN32
     int fd = shm_open(IPC_FILE_NAME, O_CREAT | O_RDWR, 0666);
     if (fd >= 0) {
         ftruncate(fd, BLOCK_SIZE);
@@ -181,6 +184,30 @@ void AudioPluginAudioProcessor::ipc_setup() {
         printf("Error when getting mmap()\n");
         return;
     }
+#else
+    HANDLE hMapFile;
+    // Check if fd exists
+    hMapFile = CreateFileMapping(
+        INVALID_HANDLE_VALUE,
+        NULL,
+        PAGE_READWRITE,
+        0,
+        IPC_BLOCK_SIZE,
+        IPC_FILE_NAME);
+    if (hMapFile == nullptr) {
+        // Failure
+        return;
+    }
+    ptr = (IPC_TYPE*)MapViewOfFile(hMapFile,
+                                   FILE_MAP_ALL_ACCESS,
+                                   0,
+                                   0,
+                                   IPC_BLOCK_SIZE);
+    if (ptr == nullptr) {
+        LOG("Error when getting MapViewOfFile()");
+        return;
+    }
+#endif
 
     ipc_make_primary();
 }
