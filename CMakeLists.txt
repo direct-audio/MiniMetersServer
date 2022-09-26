@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version" FORCE)
-#set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
 project(MiniMetersServer VERSION 1.0.2)
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
 add_subdirectory(JUCE)
@@ -36,7 +36,6 @@ target_sources(MiniMetersServer
         Assets/SpaceMono-Bold.cpp
         Assets/bg.cpp
         ma_implementation_file.cpp
-        /home/joe/ipc1/SharedMemory.cpp
         PluginEditor.cpp
         PluginProcessor.cpp)
 
