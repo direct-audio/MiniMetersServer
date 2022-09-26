@@ -197,16 +197,16 @@ void AudioPluginAudioProcessor::ipc_setup() {
         return;
     }
 #else
-    HANDLE hMapFile;
+    HANDLE fd;
     // Check if fd exists
-    hMapFile = CreateFileMapping(
+    fd = CreateFileMapping(
         INVALID_HANDLE_VALUE,
         NULL,
         PAGE_READWRITE,
         0,
         IPC_BLOCK_SIZE,
         IPC_FILE_NAME);
-    if (hMapFile == nullptr) {
+    if (fd == nullptr) {
         // Failure
         if (GetLastError() == ERROR_ALREADY_EXISTS) {
 
@@ -216,7 +216,7 @@ void AudioPluginAudioProcessor::ipc_setup() {
         MessageBox(0, msg, "Title", MB_OK);
         return;
     }
-    ptr = (IPC_TYPE*)MapViewOfFile(hMapFile,
+    ptr = (IPC_TYPE*)MapViewOfFile(fd,
                                    FILE_MAP_ALL_ACCESS,
                                    0,
                                    0,
