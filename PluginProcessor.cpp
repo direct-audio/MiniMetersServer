@@ -3,9 +3,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "json.hpp"
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -132,13 +129,16 @@ void AudioPluginAudioProcessor::Server_Start() {
 
 void AudioPluginAudioProcessor::SetupResampler(double sample_rate) {
     resamplerSampleRate = sample_rate;
-    config = ma_resampler_config_init(ma_format_f32, 2, resamplerSampleRate, 44100, ma_resample_algorithm_linear);
-    ma_result result = ma_resampler_init(&config, nullptr, &resampler);
+    config = ma_resampler_config_init(ma_format_f32, 2, resamplerSampleRate, 44100, ma_resample_algorithm_speex);
+    config.speex.quality = 5;
+    ma_result result = ma_resampler_init(&config, &resampler);
     if (result != MA_SUCCESS) {
         std::cout << "ERROR: " << result << std::endl;
     }
 }
-void AudioPluginAudioProcessor::CloseResampler() { ma_resampler_uninit(&resampler, nullptr); }
+void AudioPluginAudioProcessor::CloseResampler() {
+//        ma_resampler_uninit(&resampler);
+}
 
 // Note: This is not really a valid UUID. I believe this has 64bits of
 //       randomness which should be sufficient for this plugin, but we
