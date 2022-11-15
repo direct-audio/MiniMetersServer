@@ -184,14 +184,14 @@ void AudioPluginAudioProcessor::ipc_setup() {
 #ifndef WIN32
     int fd = shm_open(IPC_FILE_NAME, O_CREAT | O_RDWR, 0666);
     if (fd >= 0) {
-        ftruncate(fd, BLOCK_SIZE);
+        ftruncate(fd, IPC_BLOCK_SIZE);
     } else {
         // We failed to create here so lets try not to create and instead open the already existing.
         fd = shm_open(IPC_FILE_NAME, O_RDWR, 0666);
     }
 
     ptr = nullptr;
-    ptr = (IPC_TYPE*)mmap(nullptr, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    ptr = (IPC_TYPE*)mmap(nullptr, IPC_BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (ptr == nullptr) {
         printf("Error when getting mmap()\n");
         return;
