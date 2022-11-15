@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.15)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version" FORCE)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
-project(MiniMetersServer VERSION 1.0.2)
+project(MiniMetersServer VERSION 1.0.3)
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
 add_subdirectory(JUCE)
+add_subdirectory(clap-juce-extensions EXCLUDE_FROM_ALL)
 
 juce_add_plugin(MiniMetersServer
         COMPANY_NAME Direct
@@ -23,6 +24,9 @@ juce_add_plugin(MiniMetersServer
         FORMATS AU VST3 Standalone
         PRODUCT_NAME "MiniMetersServer")
 
+clap_juce_extensions_plugin(TARGET MiniMetersServer
+        CLAP_ID "com.josephlyncheski.MiniMetersServer"
+        CLAP_FEATURES effect utility)
 
 juce_generate_juce_header(MiniMetersServer)
 
