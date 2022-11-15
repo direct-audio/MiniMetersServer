@@ -118,7 +118,7 @@ private:
     IPC_TYPE* ptr;
 //    httplib::Server svr;
     CircleBuffer<float, 88200, 1> mm_buffer;
-    std::atomic<bool> server_has_finished = false;
+    std::atomic<bool> server_has_finished = { false };
     void Server_Setup();
     bool Server_StopOtherInstance();
     void Server_Start();
