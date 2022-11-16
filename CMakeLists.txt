@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version" FORCE)
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
 project(MiniMetersServer VERSION 1.0.3)
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
 add_subdirectory(JUCE)
