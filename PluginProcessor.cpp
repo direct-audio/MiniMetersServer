@@ -247,6 +247,7 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor() {
+    ptr->current_id = 0;
     editor_ptr = nullptr;
     /*
     if (svr.is_running()) {
