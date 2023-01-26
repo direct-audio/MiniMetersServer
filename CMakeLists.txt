@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
+set (CMAKE_CXX_STANDARD 20)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version" FORCE)
 project(MiniMetersServer VERSION 1.0.5)
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
@@ -57,7 +58,6 @@ target_compile_definitions(MiniMetersServer
         JUCE_DISPLAY_SPLASH_SCREEN=0
         REPORT_JUCE_APP_USAGE=0
         JUCE_VST3_CAN_REPLACE_VST2=0)
-
 
 
 # If your target needs extra binary assets, you can add them here. The first argument is the name of
