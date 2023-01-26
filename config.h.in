@@ -1,0 +1,9 @@
+// clang-format off
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#define VERSION_MAJOR ${PROJECT_VERSION_MAJOR}
+#define VERSION_MINOR ${PROJECT_VERSION_MINOR}
+#define VERSION_PATCH ${PROJECT_VERSION_PATCH}
+
+#endif /* CONFIG_H */

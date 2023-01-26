@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version" FORCE)
-project(MiniMetersServer VERSION 1.0.4)
+project(MiniMetersServer VERSION 1.0.5)
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
 add_subdirectory(JUCE)
 add_subdirectory(clap-juce-extensions EXCLUDE_FROM_ALL)
@@ -58,6 +58,8 @@ target_compile_definitions(MiniMetersServer
         REPORT_JUCE_APP_USAGE=0
         JUCE_VST3_CAN_REPLACE_VST2=0)
 
+
+
 # If your target needs extra binary assets, you can add them here. The first argument is the name of
 # a new static library target that will include all the binary resources. There is an optional
 # `NAMESPACE` argument that can specify the namespace of the generated binary data class. Finally,
@@ -73,6 +75,7 @@ target_compile_definitions(MiniMetersServer
 # linked automatically. If we'd generated a binary data target above, we would need to link to it
 # here too. This is a standard CMake command.
 
+configure_file(${CMAKE_SOURCE_DIR}/config.h.in ${CMAKE_SOURCE_DIR}/config.h)
 
 target_link_libraries(MiniMetersServer
         PRIVATE
