@@ -35,15 +35,26 @@ juce_generate_juce_header(MiniMetersServer)
 # Finally, we supply a list of source files that will be built into the target. This is a standard
 # CMake command.
 
-target_sources(MiniMetersServer
-        PRIVATE
-        Assets/SpaceMono-Bold.cpp
-        Assets/bg.cpp
-        ma_implementation_file.cpp
-        MiniMetersOpener.cpp
-        PluginEditor.cpp
-        MacOsHelpers.mm
-        PluginProcessor.cpp)
+if(APPLE)
+    target_sources(MiniMetersServer
+            PRIVATE
+            Assets/SpaceMono-Bold.cpp
+            Assets/bg.cpp
+            ma_implementation_file.cpp
+            MiniMetersOpener.cpp
+            PluginEditor.cpp
+            MacOsHelpers.mm
+            PluginProcessor.cpp)
+else()
+    target_sources(MiniMetersServer
+            PRIVATE
+            Assets/SpaceMono-Bold.cpp
+            Assets/bg.cpp
+            ma_implementation_file.cpp
+            MiniMetersOpener.cpp
+            PluginEditor.cpp
+            PluginProcessor.cpp)
+endif()
 
 # `target_compile_definitions` adds some preprocessor definitions to our target. In a Projucer
 # project, these might be passed in the 'Preprocessor Definitions' field. JUCE modules also make use
