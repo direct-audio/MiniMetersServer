@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 set (CMAKE_CXX_STANDARD 20)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version" FORCE)
-project(MiniMetersServer VERSION 1.0.5)
+project(MiniMetersServer VERSION 1.0.6)
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
 add_subdirectory(JUCE)
 add_subdirectory(clap-juce-extensions EXCLUDE_FROM_ALL)
@@ -40,7 +40,9 @@ target_sources(MiniMetersServer
         Assets/SpaceMono-Bold.cpp
         Assets/bg.cpp
         ma_implementation_file.cpp
+        MiniMetersOpener.cpp
         PluginEditor.cpp
+        MacOsHelpers.mm
         PluginProcessor.cpp)
 
 # `target_compile_definitions` adds some preprocessor definitions to our target. In a Projucer
