@@ -17,8 +17,11 @@ public:
 private:
     juce::TextButton primary_instance_button { "Click here to set this instance as the primary." };
     juce::TextButton reset_button { "Reset" };
+    juce::TextButton open_minimeters_button { "Open MiniMeters" };
 
     AudioPluginAudioProcessor& processorRef;
+
+    bool m_minimeters_is_open = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessorEditor)
 };

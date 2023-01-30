@@ -1,5 +1,6 @@
 #include "PluginEditor.h"
 #include "Assets/bg.h"
+#include "MiniMetersOpener.h"
 #include "PluginProcessor.h"
 #include "config.h"
 
@@ -14,11 +15,20 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudi
         processorRef.ipc_make_primary();
         repaint();
     };
+
     addAndMakeVisible(reset_button);
     reset_button.onClick = [&]() {
         processorRef.ipc_setup();
         repaint();
     };
+
+    m_minimeters_is_open = MiniMetersOpener::is_minimeters_running();
+    open_minimeters_button.onClick = [&]() {
+        MiniMetersOpener::launch_minimeters();
+        m_minimeters_is_open = MiniMetersOpener::is_minimeters_running();
+    };
+
+    addAndMakeVisible(open_minimeters_button);
     setSize(800, 350);
     background = juce::ImageCache::getFromMemory(bg_png, bg_png_len);
 }
@@ -59,14 +69,22 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g) {
 
         primary_instance_button.setVisible(false);
     }
-    {
-        g.setColour(Colour(0.0f, 0.0f, 1.0f, 0.25f));
-        g.drawText(juce::String(VERSION_MAJOR) + "." + juce::String(VERSION_MINOR) + "." + juce::String(VERSION_PATCH), juce::Rectangle<int>{ 15, 15, 100, 10 },Justification::left);
+
+    if (processorRef.server_state == processorRef.StatePrimary
+        && !m_minimeters_is_open) {
+        open_minimeters_button.setVisible(true);
+    } else {
+        open_minimeters_button.setVisible(false);
     }
 
+    {
+        g.setColour(Colour(0.0f, 0.0f, 1.0f, 0.25f));
+        g.drawText(juce::String(VERSION_MAJOR) + "." + juce::String(VERSION_MINOR) + "." + juce::String(VERSION_PATCH), juce::Rectangle<int> { 15, 15, 100, 10 }, Justification::left);
+    }
 }
 
 void AudioPluginAudioProcessorEditor::resized() {
     primary_instance_button.setBounds(juce::Rectangle<int>(305 + 30, getHeight() / 2 - 25, getWidth() - 305 - 30 - 30, 50));
     reset_button.setBounds(juce::Rectangle<int>(getWidth() - 15 - 70, 15, 70, 25));
+    open_minimeters_button.setBounds(juce::Rectangle<int>(305 + 30 + 60, getHeight() / 2 + 50, getWidth() - 305 - 30 - 30 - 120, 50));
 }
