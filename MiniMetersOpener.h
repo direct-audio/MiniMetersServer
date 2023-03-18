@@ -3,10 +3,10 @@
 #include <JuceHeader.h>
 #include <cstdlib>
 #if defined(_WIN32)
-#include <windows.h>
 #include <processthreadsapi.h>
-#include <tlhelp32.h>
 #include <string>
+#include <tlhelp32.h>
+#include <windows.h>
 #endif
 
 class MiniMetersOpener {
@@ -61,28 +61,28 @@ public:
 
     static bool launch_minimeters() {
 #if defined(__APPLE__)
-//        auto minimeters_url = URL("file:///Applications/MiniMeters.app");
-//        minimeters_url.launchInDefaultBrowser();
+//        juce::Process::openDocument("com.josephlyncheski.minimeters", "-d \"MiniMeters Plugin\"");
+        MacOsHelpers::open_minimeters();
 #elif defined(_WIN32)
-// Pulled from here: https://stackoverflow.com/questions/15435994/how-do-i-open-an-exe-from-another-c-exe
-        STARTUPINFOA si;
-        PROCESS_INFORMATION pi;
+        // Pulled from here: https://stackoverflow.com/questions/15435994/how-do-i-open-an-exe-from-another-c-exe
+        STARTUPINFOA startup_info;
+        PROCESS_INFORMATION process_info;
 
-        ZeroMemory(&si, sizeof(si));
-        si.cb = sizeof(si);
-        ZeroMemory(&pi, sizeof(pi));
+        ZeroMemory(&startup_info, sizeof(startup_info));
+        startup_info.cb = sizeof(startup_info);
+        ZeroMemory(&process_info, sizeof(process_info));
 
         CreateProcessA(
-                "C:/Program Files/MiniMeters/MiniMeters.exe",
-                nullptr,
-                nullptr,
-                nullptr,
-                FALSE,
-                CREATE_NEW_CONSOLE,
-                nullptr,
-                nullptr,
-                &si,
-                &pi);
+            "C:/Program Files/MiniMeters/MiniMeters.exe",
+            "-d \"MiniMeters Plugin\"",
+            nullptr,
+            nullptr,
+            FALSE,
+            CREATE_NEW_CONSOLE,
+            nullptr,
+            nullptr,
+            &startup_info,
+            &process_info);
 
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);

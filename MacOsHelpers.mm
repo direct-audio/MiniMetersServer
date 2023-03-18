@@ -21,4 +21,35 @@ bool is_minimeters_running() {
     return false;
 }
 
+bool open_minimeters() {
+    @autoreleasepool {
+        NSURL* minimeters_app_url = [[NSWorkspace sharedWorkspace]
+            URLForApplicationWithBundleIdentifier:@"com.josephlyncheski.MiniMeters"];
+
+        NSWorkspace* workspace = [NSWorkspace sharedWorkspace];
+
+        if (@available(macOS 10.15, *)) {
+            auto config = [NSWorkspaceOpenConfiguration configuration];
+            [config setCreatesNewApplicationInstance:YES];
+            config.arguments = @[ @"-d", @"MiniMeters Plugin" ];
+
+            [workspace openApplicationAtURL:minimeters_app_url
+                              configuration:config
+                          completionHandler:nil];
+
+            return true;
+        } else {
+            NSMutableDictionary* dict = [[NSMutableDictionary new] autorelease];
+
+            [dict setObject:@[ @"-d", @"MiniMeters Plugin" ]
+                     forKey:@"NSWorkspaceLaunchConfigurationArguments"];
+            return [workspace launchApplicationAtURL:minimeters_app_url
+                                             options:NSWorkspaceLaunchDefault | NSWorkspaceLaunchNewInstance
+                                       configuration:dict
+                                               error:nil];
+            return true;
+        }
+    }
+}
+
 }
