@@ -11,5 +11,5 @@ copy .\build\MiniMetersServer_artefacts\Release\CLAP\MiniMetersServer.clap .\rel
 cd releases
 tar.exe -a -c -f plugin-windows.zip MiniMetersServer.clap MiniMetersServer.vst3
 cd ..
-rmdir /s /Q .\releases\MiniMetersServer.vst3
-del .\releases\MiniMetersServer.clap
+if exist .\releases\MiniMetersServer.vst3 rmdir /s /Q .\releases\MiniMetersServer.vst3
+if exist .\releases\MiniMetersServer.clap del .\releases\MiniMetersServer.clap
