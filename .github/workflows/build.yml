@@ -1,0 +1,96 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build_linux:
+    runs-on: [ self-hosted, linux ]
+    name: Linux
+    steps:
+      - name: Get Dependencies
+        run: apt -y install git cmake g++ pkg-config libx11-dev libxrandr-dev xorg-dev libasound2-dev libjack-jackd2-dev zip
+
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v3
+        with:
+          ref: master
+          submodules: recursive
+
+      - name: Update Submodules
+        run: "git submodule update --remote --init --recursive"
+
+      - name: Run Build Script
+        working-directory: ${{github.workspace}}/
+        run: ./build_linux.sh
+
+      - name: Get B2 self-container
+        working-directory: ${{github.workspace}}/
+        run: curl -lLO https://github.com/Backblaze/B2_Command_Line_Tool/releases/latest/download/b2-linux && chmod +x b2-linux
+
+      - name: Deploy to B2
+        working-directory: ${{github.workspace}}/
+        env:
+          B2_APPLICATION_KEY_ID: ${{ secrets.B2_APPKEY_ID }}
+          B2_APPLICATION_KEY: ${{ secrets.B2_APPKEY }}
+        run: ./b2-linux sync "./releases" "b2://MiniMetersServerBuilds/${{github.run_number}}-${{github.sha}}"
+
+  build_macos:
+    runs-on: [ self-hosted, macos ]
+    name: macOS
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v3
+        with:
+          ref: master
+          submodules: recursive remote
+
+      - name: Update Submodules
+        run: "git submodule update --remote --init --recursive"
+
+      - name: Run Build Script
+        working-directory: ${{github.workspace}}/
+        run: ./build_macos.sh
+
+      - name: Get b2-tools from Homebrew
+        run: arch -arm64 brew install b2-tools
+
+      - name: Deploy to B2
+        working-directory: ${{github.workspace}}/
+        env:
+          B2_APPLICATION_KEY_ID: ${{ secrets.B2_APPKEY_ID }}
+          B2_APPLICATION_KEY: ${{ secrets.B2_APPKEY }}
+        run: b2 sync "./releases" "b2://MiniMetersServerBuilds/${{github.run_number}}-${{github.sha}}"
+
+  windows:
+    runs-on: [ self-hosted, windows]
+    name: Windows
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v3
+        with:
+          ref: master
+          submodules: recursive remote
+
+      - name: Update Submodules
+        run: "git submodule update --remote --init --recursive"
+
+      - name: Run Build Script
+        working-directory: ${{github.workspace}}/
+        run: ./build_windows.cmd
+
+      - name: Download B2 self-contained
+        working-directory: ${{github.workspace}}/
+        run: curl.exe -lLO https://github.com/Backblaze/B2_Command_Line_Tool/releases/latest/download/b2-windows.exe
+
+      - name: Deploy to B2
+        working-directory: ${{github.workspace}}/
+        env:
+          B2_APPLICATION_KEY_ID: ${{ secrets.B2_APPKEY_ID }}
+          B2_APPLICATION_KEY: ${{ secrets.B2_APPKEY }}
+        run: ./b2-windows.exe sync "./releases" "b2://MiniMetersServerBuilds/${{github.run_number}}-${{github.sha}}"
