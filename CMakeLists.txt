@@ -88,8 +88,6 @@ target_compile_definitions(MiniMetersServer
 # linked automatically. If we'd generated a binary data target above, we would need to link to it
 # here too. This is a standard CMake command.
 
-configure_file(${CMAKE_SOURCE_DIR}/config.h.in ${CMAKE_SOURCE_DIR}/config.h)
-
 target_link_libraries(MiniMetersServer
         PRIVATE
         # AudioPluginData           # If we'd created a binary data target, we'd link to it here
