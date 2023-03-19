@@ -2,7 +2,7 @@
 #include "Assets/bg.h"
 #include "MiniMetersOpener.h"
 #include "PluginProcessor.h"
-#include "config.h"
+#include <JuceHeader.h>
 
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudioProcessor& p)
     : AudioProcessorEditor(&p)
@@ -79,7 +79,7 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g) {
 
     {
         g.setColour(Colour(0.0f, 0.0f, 1.0f, 0.25f));
-        g.drawText(juce::String(VERSION_MAJOR) + "." + juce::String(VERSION_MINOR) + "." + juce::String(VERSION_PATCH), juce::Rectangle<int> { 15, 15, 100, 10 }, Justification::left);
+        g.drawText(juce::String(ProjectInfo::versionString), juce::Rectangle<int> { 15, 15, 100, 10 }, Justification::left);
     }
 }
 
