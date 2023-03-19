@@ -3,12 +3,15 @@
 #if defined(__APPLE__)
 #include "MacOsHelpers.h"
 #elif defined(_WIN32)
+#include <windows.h> // Must be first it the list.
+
 #include <processthreadsapi.h>
 #include <tlhelp32.h>
-#include <windows.h>
 #endif
+#include <ShlObj_core.h>
 #include <fstream>
 #include <string>
+#include <tchar.h>
 
 bool MiniMetersOpener::is_minimeters_running() {
 #if defined(__APPLE__)
@@ -62,7 +65,6 @@ bool MiniMetersOpener::launch_minimeters() {
     //        juce::Process::openDocument("com.josephlyncheski.minimeters", "-d \"MiniMeters Plugin\"");
     MacOsHelpers::open_minimeters();
 #elif defined(_WIN32)
-    typedef std::wstring String;
 
     // Pulled from here: https://stackoverflow.com/questions/15435994/how-do-i-open-an-exe-from-another-c-exe
 
@@ -70,18 +72,24 @@ bool MiniMetersOpener::launch_minimeters() {
     // FIXME: This isn't fool proof. Someone could install MiniMeters anywhere. Maybe we should save a RegKey
     //        on install with the location. Might be overkill for a simple QOL thing though.
 
-    TCHAR program_files_folder[MAX_PATH];
-    SHGetSpecialFolderPath(
+    char program_files_folder[MAX_PATH];
+    bool success = SHGetSpecialFolderPath(
         0,
         program_files_folder,
         CSIDL_PROGRAM_FILES,
         FALSE);
 
-    std::wstring minimeters_location = std::wstring(program_files_folder) + L"\\MiniMeters\\MiniMeters.exe";
-    std::wstring minimeters_demo_location = std::wstring(program_files_folder) + L"\\MiniMeters\\MiniMeters-demo.exe";
+    if (!success) {
+        // FIXME: We should probably notify the user that we could not get the program files folder.
+        return false;
+    }
 
-    std::ifstream mm_exists(minimeters_location.c_str());
-    std::ifstream mm_demo_exists(minimeters_demo_location.c_str());
+    std::string minimeters_location = std::string(program_files_folder) + "\\MiniMeters\\MiniMeters.exe";
+    std::string minimeters_demo_location = std::string(program_files_folder) + "\\MiniMeters\\MiniMeters-demo.exe";
+
+    std::ifstream mm_exists(minimeters_location);
+    std::ifstream mm_demo_exists(minimeters_demo_location);
+
     if (!mm_exists.good()) {
         if (mm_demo_exists.good()) {
             minimeters_location = minimeters_demo_location;
@@ -98,9 +106,11 @@ bool MiniMetersOpener::launch_minimeters() {
     startup_info.cb = sizeof(startup_info);
     ZeroMemory(&process_info, sizeof(process_info));
 
+    char args[] = "-d \"MiniMeters Plugin\"";
+
     CreateProcessA(
         minimeters_location.c_str(),
-        "-d \"MiniMeters Plugin\"",
+        args,
         nullptr,
         nullptr,
         FALSE,
@@ -110,8 +120,8 @@ bool MiniMetersOpener::launch_minimeters() {
         &startup_info,
         &process_info);
 
-    CloseHandle(pi.hProcess);
-    CloseHandle(pi.hThread);
+    CloseHandle(process_info.hProcess);
+    CloseHandle(process_info.hThread);
 #endif
     return is_minimeters_running();
 }
