@@ -5,13 +5,14 @@
 #elif defined(_WIN32)
 #include <windows.h> // Must be first it the list.
 
-#include <processthreadsapi.h>
-#include <tlhelp32.h>
-#endif
 #include <ShlObj_core.h>
+#include <processthreadsapi.h>
+#include <tchar.h>
+#include <tlhelp32.h>
+
+#endif
 #include <fstream>
 #include <string>
-#include <tchar.h>
 
 bool MiniMetersOpener::is_minimeters_running() {
 #if defined(__APPLE__)
