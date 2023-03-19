@@ -3,8 +3,26 @@
 #include <Foundation/NSBundle.h>
 
 namespace MacOsHelpers {
-bool is_minimeters_running() {
+static NSURL* get_bundle_id_if_it_exists(NSString* bundle_id) {
+    NSURL* minimeters_app_url = [[NSWorkspace sharedWorkspace]
+        URLForApplicationWithBundleIdentifier:@"com.josephlyncheski.minimeters"];
+    // Check if the bundle exists.
+    NSError* err;
+    bool is_available = [minimeters_app_url checkResourceIsReachableAndReturnError:&err];
+
+    if (is_available)
+        return minimeters_app_url;
+
+    return nullptr;
+}
+
+bool is_minimeters_present_or_running() {
     @autoreleasepool {
+        NSURL* minimeters_app_url = get_bundle_id_if_it_exists(@"com.josephlyncheski.minimeters");
+        NSURL* minimeters_demo_app_url = get_bundle_id_if_it_exists(@"com.josephlyncheski.minimetersdemo");
+        if (!minimeters_app_url && minimeters_demo_app_url)
+            return true; // Return that we are running as to not show the button.
+
         NSArray* apps = [[NSWorkspace sharedWorkspace] runningApplications];
         NSString* minimeters_bundle_id = @"com.josephlyncheski.minimeters";
 
@@ -23,11 +41,21 @@ bool is_minimeters_running() {
 
 bool open_minimeters() {
     @autoreleasepool {
-        NSURL* minimeters_app_url = [[NSWorkspace sharedWorkspace]
-            URLForApplicationWithBundleIdentifier:@"com.josephlyncheski.MiniMeters"];
+        NSURL* minimeters_app_url = get_bundle_id_if_it_exists(@"com.josephlyncheski.minimeters");
+        NSURL* minimeters_demo_app_url = get_bundle_id_if_it_exists(@"com.josephlyncheski.minimetersdemo");
 
+        // Check if MiniMeters.app exists somewhere on the computer.
+        // If not then try the demo. If nether just return without doing anything.
+        if (!minimeters_app_url) {
+            if (minimeters_demo_app_url) {
+                minimeters_app_url = minimeters_demo_app_url;
+            } else {
+                return true; // Just say we opened it even if we cannot.
+            }
+        }
+
+        // The following is stolen from JUCE's code.
         NSWorkspace* workspace = [NSWorkspace sharedWorkspace];
-
         if (@available(macOS 10.15, *)) {
             auto config = [NSWorkspaceOpenConfiguration configuration];
             [config setCreatesNewApplicationInstance:YES];

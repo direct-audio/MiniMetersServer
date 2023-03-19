@@ -24,8 +24,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudi
 
     m_minimeters_is_open = MiniMetersOpener::is_minimeters_running();
     open_minimeters_button.onClick = [&]() {
-        MiniMetersOpener::launch_minimeters();
-        m_minimeters_is_open = MiniMetersOpener::is_minimeters_running();
+        m_minimeters_is_open = MiniMetersOpener::launch_minimeters();
     };
 
     addAndMakeVisible(open_minimeters_button);
