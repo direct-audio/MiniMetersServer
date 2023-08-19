@@ -116,8 +116,5 @@ private:
 
     IPC_TYPE* m_ipc_ptr;
 
-    CircleBuffer<float, 88200, 1> mm_buffer;
-    std::atomic<bool> server_has_finished = { false };
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessor)
 };
