@@ -1,79 +1,121 @@
 #include "PluginEditor.h"
-#include "Assets/bg.h"
+#include "BinaryData.h"
 #include "MiniMetersOpener.h"
 #include "PluginProcessor.h"
 #include <JuceHeader.h>
+#include <atomic>
+#include <chrono>
+#include <thread>
 
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudioProcessor& p)
     : AudioProcessorEditor(&p)
     , processorRef(p) {
     juce::ignoreUnused(processorRef);
-    setLookAndFeel(&mm_look_and_feel);
-    addAndMakeVisible(primary_instance_button);
-    primary_instance_button.onClick = [&]() {
-        //        processorRef.Server_MakePrimary();
+    setLookAndFeel(&m_mm_look_and_feel);
+    addAndMakeVisible(m_primary_instance_button);
+    m_primary_instance_button.onClick = [&]() {
         processorRef.ipc_make_primary();
         repaint();
     };
 
-    addAndMakeVisible(reset_button);
-    reset_button.onClick = [&]() {
+    addAndMakeVisible(m_reset_button);
+    m_reset_button.onClick = [&]() {
         processorRef.ipc_setup();
         repaint();
     };
 
-    m_minimeters_is_open = MiniMetersOpener::is_minimeters_running();
-    open_minimeters_button.onClick = [&]() {
+    // Check if MiniMeters is running
+    m_minimeters_is_open.store(MiniMetersOpener::is_minimeters_running(), std::memory_order_relaxed);
+
+    m_minimeters_checker_thread = std::thread([this]() {
+        while (m_check_for_minimeters.load(std::memory_order_relaxed) == true) {
+            // Check once every second if MiniMeters has been opened.
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+            // Store the last state so we can compare.
+            bool last_minimeters_state = m_minimeters_is_open;
+
+            bool is_minimeters_open = MiniMetersOpener::is_minimeters_running();
+
+            // I believe we may need to order this strongly so that the repaint
+            // happens after this bool is updatad.
+            m_minimeters_is_open = is_minimeters_open;
+
+            // Repaint if the state changed.
+            if (is_minimeters_open != last_minimeters_state) {
+                // We already have a safe way to repaint in the plugin processor
+                // so lets just use that.
+                processorRef.triggerAsyncUpdate();
+            }
+        }
+    });
+
+    m_open_minimeters_button.onClick = [&]() {
         m_minimeters_is_open = MiniMetersOpener::launch_minimeters();
     };
 
-    addAndMakeVisible(open_minimeters_button);
+    addAndMakeVisible(m_open_minimeters_button);
     setSize(800, 350);
-    background = juce::ImageCache::getFromMemory(bg_png, bg_png_len);
+    background = juce::ImageCache::getFromMemory(BinaryData::bg_png, BinaryData::bg_pngSize);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {
+    // Stop checking if MiniMeters is open.
+    m_check_for_minimeters.store(false, std::memory_order_relaxed);
+    m_minimeters_checker_thread.join();
+
     processorRef.editor_ptr = nullptr;
     setLookAndFeel(nullptr);
 }
 
 //==============================================================================
 void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g) {
-    background = juce::ImageCache::getFromMemory(bg_png, bg_png_len);
     g.drawImageWithin(background, 0, 0, getWidth(), getHeight(), juce::RectanglePlacement::stretchToFit);
     g.setColour(juce::Colours::white);
-    g.setFont(mm_look_and_feel.minimeters_font.withHeight(24));
-    if (processorRef.server_state == processorRef.StatePrimary) {
-        g.drawFittedText("Currently set as primary instance.",
-                         juce::Rectangle<int>(305, 0, getWidth() - 305, getHeight()),
-                         juce::Justification::centred, 1);
+    g.setFont(m_mm_look_and_feel.minimeters_font.withHeight(24));
 
-        primary_instance_button.setVisible(false);
-    } else if (processorRef.server_state == processorRef.StateCannotFindMiniMeters) {
-        g.drawFittedText("Cannot connect to MiniMeters. Please ensure the standalone MiniMeters instance is open.",
-                         juce::Rectangle<int>(305, 0, getWidth() - 305, getHeight()),
-                         juce::Justification::centred, 1);
+    auto text_rect = juce::Rectangle<int>(305, 0, getWidth() - 305, getHeight());
 
-        primary_instance_button.setVisible(false);
-    } else if (processorRef.server_state == processorRef.StateNotPrimary) {
-        g.drawFittedText("Another instance is sending audio to MiniMeters.",
-                         juce::Rectangle<int>(305, -50, getWidth() - 305, getHeight()),
-                         juce::Justification::centred, 1);
+    // MiniMeters does not appear to be open in this case.
+    m_open_minimeters_button.setVisible(false);
 
-        primary_instance_button.setVisible(true);
-    } else if (processorRef.server_state == processorRef.StateError) {
-        g.drawFittedText("An error occurred while trying to access port 8422.\nPlease contact support.",
-                         juce::Rectangle<int>(305, 0, getWidth() - 305, getHeight()),
-                         juce::Justification::centred, 2);
-
-        primary_instance_button.setVisible(false);
-    }
-
-    if (processorRef.server_state == processorRef.StatePrimary
-        && !m_minimeters_is_open) {
-        open_minimeters_button.setVisible(true);
+    if (processorRef.server_state == AudioPluginAudioProcessor::StatePrimary && !m_minimeters_is_open) {
+        m_primary_instance_button.setVisible(false);
+#if defined(__APPLE__)
+        g.drawFittedText("MiniMeters is not open.\nPlease open it from the Applications Folder.",
+#elif defined(_WIN32)
+        g.drawFittedText("MiniMeters is not open.\nPlease open it from the Start Menu.",
+#elif defined(__linux__)
+        g.drawFittedText("MiniMeters is not open.\nPlease open it from the folder you installed the .AppImage.",
+#endif
+                         text_rect, juce::Justification::centred, 2);
+        // m_open_minimeters_button.setVisible(false);
     } else {
-        open_minimeters_button.setVisible(false);
+        if (processorRef.server_state == processorRef.StatePrimary) {
+            g.drawFittedText("Currently set as primary instance.",
+                             text_rect,
+                             juce::Justification::centred, 1);
+
+            m_primary_instance_button.setVisible(false);
+        } else if (processorRef.server_state == AudioPluginAudioProcessor::StateCannotFindMiniMeters) {
+            g.drawFittedText("Cannot connect to MiniMeters.\nPlease ensure the standalone MiniMeters instance is open.",
+                             text_rect,
+                             juce::Justification::centred, 2);
+
+            m_primary_instance_button.setVisible(false);
+        } else if (processorRef.server_state == AudioPluginAudioProcessor::StateNotPrimary) {
+            g.drawFittedText("Another instance is sending audio to MiniMeters.",
+                             text_rect,
+                             juce::Justification::centred, 1);
+
+            m_primary_instance_button.setVisible(true);
+        } else if (processorRef.server_state == AudioPluginAudioProcessor::StateError) {
+            g.drawFittedText("An error occurred while trying to access port 8422.\nPlease contact support.",
+                             text_rect,
+                             juce::Justification::centred, 2);
+
+            m_primary_instance_button.setVisible(false);
+        }
     }
 
     {
@@ -83,7 +125,7 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g) {
 }
 
 void AudioPluginAudioProcessorEditor::resized() {
-    primary_instance_button.setBounds(juce::Rectangle<int>(305 + 30, getHeight() / 2 - 25, getWidth() - 305 - 30 - 30, 50));
-    reset_button.setBounds(juce::Rectangle<int>(getWidth() - 15 - 70, 15, 70, 25));
-    open_minimeters_button.setBounds(juce::Rectangle<int>(305 + 30 + 60, getHeight() / 2 + 50, getWidth() - 305 - 30 - 30 - 120, 50));
+    m_primary_instance_button.setBounds(juce::Rectangle<int>(305 + 30, getHeight() / 2 - 25, getWidth() - 305 - 30 - 30, 50));
+    m_reset_button.setBounds(juce::Rectangle<int>(getWidth() - 15 - 70, 15, 70, 25));
+    m_open_minimeters_button.setBounds(juce::Rectangle<int>(305 + 30 + 60, getHeight() / 2 + 50, getWidth() - 305 - 30 - 30 - 120, 50));
 }

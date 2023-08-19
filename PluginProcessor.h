@@ -1,10 +1,10 @@
 #pragma once
 #include "SharedMemory.h"
-#include "miniaudio-dcec55f7b8b0b9b2ec602069ed2e19cde089be84/miniaudio.h"
 #include "miniaudio-dcec55f7b8b0b9b2ec602069ed2e19cde089be84/extras/speex_resampler/ma_speex_resampler.h"
+#include "miniaudio-dcec55f7b8b0b9b2ec602069ed2e19cde089be84/miniaudio.h"
 #include <JuceHeader.h>
 
-//#include "httplib.h"
+// #include "httplib.h"
 
 template <class T, size_t size, size_t n_consumers>
 class CircleBuffer {
@@ -98,7 +98,6 @@ public:
         return server_state;
     }
 
-    void Server_MakePrimary();
     void ipc_make_primary();
     void ipc_setup();
 
@@ -107,22 +106,18 @@ private:
     std::array<float, 65536 * 2> resampled_output;
     std::array<float, 65536 * 2> pre_resampling_input;
 
-    std::atomic<double> resamplerSampleRate;
-    int64_t uuid_hash = 0;
-    ma_resampler_config config;
-    ma_resampler resampler;
-    void SetupResampler(double sample_rate);
-    void CloseResampler();
-    // Server
-    std::string b;
-    char str[99];
-    IPC_TYPE* ptr;
-//    httplib::Server svr;
+    int64_t m_uuid_hash = 0;
+
+    std::atomic<double> m_resampler_sr = 0;
+    ma_resampler_config m_resampler_config;
+    ma_resampler m_resampler;
+    void setup_resampler(double sample_rate);
+    void close_resampler();
+
+    IPC_TYPE* m_ipc_ptr;
+
     CircleBuffer<float, 88200, 1> mm_buffer;
     std::atomic<bool> server_has_finished = { false };
-    void Server_Setup();
-    bool Server_StopOtherInstance();
-    void Server_Start();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessor)
 };
