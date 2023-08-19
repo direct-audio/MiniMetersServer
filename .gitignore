@@ -3,3 +3,5 @@ cmake-build-release
 build-linux
 build-macos
 build-windows
+build
+.cache
