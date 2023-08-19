@@ -56,7 +56,7 @@ static std::string get_uuid() {
 
 // Note: This is likely increasing our collision rate, but this is faster to
 //       compare when the plugin is actually running.
-int64_t compute_hash(std::string const& s) {
+static int64_t compute_hash(std::string const& s) {
     const int p = 31;
     const int m = 1e9 + 9;
     int64_t hash_value = 0;
