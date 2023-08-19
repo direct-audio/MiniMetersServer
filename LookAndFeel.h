@@ -1,11 +1,11 @@
 #pragma once
-#include "Assets/SpaceMono-Bold.h"
+#include "BinaryData.h"
 #include <JuceHeader.h>
 
 class MiniMetersLookAndFeel : public juce::LookAndFeel_V4 {
 public:
     MiniMetersLookAndFeel() {
-        minimeters_font = juce::Font(juce::Typeface::createSystemTypefaceFor(SpaceMono_Bold_ttf, SpaceMono_Bold_ttf_len));
+        minimeters_font = juce::Font(juce::Typeface::createSystemTypefaceFor(BinaryData::SpaceMonoRegular_ttf, BinaryData::SpaceMonoRegular_ttfSize));
     }
     juce::Font minimeters_font;
     void drawButtonBackground(juce::Graphics& g, juce::Button& button, const juce::Colour& backgroundColour, bool, bool isButtonDown) override {
