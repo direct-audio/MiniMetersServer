@@ -103,8 +103,8 @@ public:
 
 private:
     // Resampling
-    std::array<float, 65536 * 2> resampled_output;
-    std::array<float, 65536 * 2> pre_resampling_input;
+    std::array<float, 65536 * 2> m_resampled_output;
+    std::array<float, 65536 * 2> m_pre_resampling_input;
 
     int64_t m_uuid_hash = 0;
 

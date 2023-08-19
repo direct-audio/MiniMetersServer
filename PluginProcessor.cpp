@@ -222,34 +222,34 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     const int n_samples = buffer.getNumSamples();
 
     // The DAW should really never send a buffer the larger than 65536 samples, but in the case that it does.
-    if (n_samples >= pre_resampling_input.size())
+    if (n_samples >= m_pre_resampling_input.size())
         return;
 
     if (n_input_channels == 1) {
         auto ptr_l = buffer.getReadPointer(0);
 
         for (int i = 0; i < n_samples * 2; i += 2) {
-            pre_resampling_input[i + 0] = *(ptr_l + (i / 2));
-            pre_resampling_input[i + 1] = *(ptr_l + (i / 2));
+            m_pre_resampling_input[i + 0] = *(ptr_l + (i / 2));
+            m_pre_resampling_input[i + 1] = *(ptr_l + (i / 2));
         }
     } else if (n_input_channels == 2) {
         auto ptr_l = buffer.getReadPointer(0);
         auto ptr_r = buffer.getReadPointer(1);
 
         for (int i = 0; i < n_samples * 2; i += 2) {
-            pre_resampling_input[i + 0] = *(ptr_l + (i / 2));
-            pre_resampling_input[i + 1] = *(ptr_r + (i / 2));
+            m_pre_resampling_input[i + 0] = *(ptr_l + (i / 2));
+            m_pre_resampling_input[i + 1] = *(ptr_r + (i / 2));
         }
     }
 
     ma_uint64 frame_count_in = n_samples;
     ma_uint64 frame_count_out = 44100;
-    ma_resampler_process_pcm_frames(&m_resampler, &pre_resampling_input, &frame_count_in, &resampled_output, &frame_count_out);
+    ma_resampler_process_pcm_frames(&m_resampler, &m_pre_resampling_input, &frame_count_in, &m_resampled_output, &frame_count_out);
     // This temporary only exists for a short time, but the pointer to the
     // data will be fully read by the time the loop continues.
 
     for (size_t i = 0; i < frame_count_out * 2; i++) {
-        m_ipc_ptr->buffer.write(resampled_output[i]);
+        m_ipc_ptr->buffer.write(m_resampled_output[i]);
     }
     m_ipc_ptr->sample_rate = getSampleRate();
     m_ipc_ptr->block_size = getBlockSize();
