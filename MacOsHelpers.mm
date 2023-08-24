@@ -5,7 +5,7 @@
 namespace MacOsHelpers {
 static NSURL* get_bundle_id_if_it_exists(NSString* bundle_id) {
     NSURL* minimeters_app_url = [[NSWorkspace sharedWorkspace]
-        URLForApplicationWithBundleIdentifier:@"com.josephlyncheski.minimeters"];
+        URLForApplicationWithBundleIdentifier:bundle_id];
     // Check if the bundle exists.
     NSError* err;
     bool is_available = [minimeters_app_url checkResourceIsReachableAndReturnError:&err];
@@ -20,11 +20,19 @@ bool is_minimeters_present_or_running() {
     @autoreleasepool {
         NSURL* minimeters_app_url = get_bundle_id_if_it_exists(@"com.josephlyncheski.minimeters");
         NSURL* minimeters_demo_app_url = get_bundle_id_if_it_exists(@"com.josephlyncheski.minimetersdemo");
-        if (!minimeters_app_url && minimeters_demo_app_url)
-            return true; // Return that we are running as to not show the button.
 
-        NSArray* apps = [[NSWorkspace sharedWorkspace] runningApplications];
         NSString* minimeters_bundle_id = @"com.josephlyncheski.minimeters";
+
+        if (minimeters_demo_app_url && !minimeters_app_url) {
+            // User is running the demo swap the id we are looking for.
+            minimeters_bundle_id = @"com.josephlyncheski.minimetersdemo";
+        } else if (!minimeters_app_url && !minimeters_demo_app_url) {
+            // It looks as if neither are installed here.
+            return true; // Return that we are running as to not show the button.
+        }
+
+        NSWorkspace* workspace = [NSWorkspace sharedWorkspace];
+        NSArray* apps = [workspace runningApplications];
 
         for (NSRunningApplication* app in apps) {
             NSBundle* bundle = [NSBundle bundleWithURL:[app bundleURL]];
@@ -36,6 +44,7 @@ bool is_minimeters_present_or_running() {
             }
         }
     };
+
     return false;
 }
 
