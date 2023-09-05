@@ -1,4 +1,8 @@
+#!/bin/bash
 set -e
+
+git submodule update --init --recursive --remote
+
 cmake -B build-linux -DCMAKE_BUILD_TYPE=Release
 cmake --build build-linux --target MiniMetersServer_VST3
 cmake --build build-linux --target MiniMetersServer_CLAP

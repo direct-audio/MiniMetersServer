@@ -1,4 +1,8 @@
+#!/bin/bash
 set -e
+
+git submodule update --init --recursive --remote
+
 cmake -B build-macos -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13 -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build build-macos --target MiniMetersServer_VST3
 cmake --build build-macos --target MiniMetersServer_AU
