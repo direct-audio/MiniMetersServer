@@ -14,7 +14,7 @@ jobs:
     name: Linux
     steps:
       - name: Get Dependencies
-        run: sudo apt -y install git cmake g++ pkg-config libx11-dev libxrandr-dev xorg-dev libasound2-dev libjack-jackd2-dev zip
+        run: echo winmac | sudo -S apt -y install git cmake g++ pkg-config libx11-dev libxrandr-dev xorg-dev libasound2-dev libjack-jackd2-dev zip
 
       - name: Checkout repository and submodules
         uses: actions/checkout@v3
