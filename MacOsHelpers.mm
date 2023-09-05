@@ -35,7 +35,12 @@ bool is_minimeters_present_or_running() {
         NSArray* apps = [workspace runningApplications];
 
         for (NSRunningApplication* app in apps) {
-            NSBundle* bundle = [NSBundle bundleWithURL:[app bundleURL]];
+            NSURL* bundle_url = [app bundleURL];
+            if (!bundle_url)
+                continue;
+            NSBundle* bundle = [NSBundle bundleWithURL:bundle_url];
+            if (!bundle)
+                continue;
             NSDictionary* info = [bundle infoDictionary];
             NSString* identifier = info[@"CFBundleIdentifier"];
             // Using isEqual so if for some reason nil is passed we don't hit an exception.
