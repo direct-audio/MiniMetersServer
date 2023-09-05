@@ -18,7 +18,7 @@ bool MiniMetersOpener::is_minimeters_running() {
 #if defined(__APPLE__)
     // Naive way of checking on macOS.
     // bool is_running = system("ps -Ac | grep 'MiniMeters' > /dev/null") == 0;
-    return MacOsHelpers::is_minimeters_present_or_running();
+    // return true;//MacOsHelpers::is_minimeters_present_or_running();
 #elif defined(_WIN32)
     // Pulled from here: https://stackoverflow.com/questions/3477097/get-full-running-process-list-visual-c
     std::string compare;

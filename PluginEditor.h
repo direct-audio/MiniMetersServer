@@ -18,14 +18,8 @@ public:
 private:
     juce::TextButton m_primary_instance_button { "Click here to set this instance as the primary." };
     juce::TextButton m_reset_button { "Reset" };
-    juce::TextButton m_open_minimeters_button { "Open MiniMeters" };
 
     AudioPluginAudioProcessor& processorRef;
-
-    std::atomic<bool> m_minimeters_is_open = false;
-
-    std::atomic<bool> m_check_for_minimeters = true;
-    std::thread m_minimeters_checker_thread;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessorEditor)
 };
