@@ -1,7 +1,5 @@
 #pragma once
 #include "SharedMemory.h"
-#include "miniaudio-dcec55f7b8b0b9b2ec602069ed2e19cde089be84/extras/speex_resampler/ma_speex_resampler.h"
-#include "miniaudio-dcec55f7b8b0b9b2ec602069ed2e19cde089be84/miniaudio.h"
 #include <JuceHeader.h>
 
 // #include "httplib.h"

@@ -1,6 +1,0 @@
-
-#define MINIAUDIO_SPEEX_RESAMPLER_IMPLEMENTATION
-#include "miniaudio-dcec55f7b8b0b9b2ec602069ed2e19cde089be84/extras/speex_resampler/ma_speex_resampler.h"
-
-#define MINIAUDIO_IMPLEMENTATION
-#include "miniaudio-dcec55f7b8b0b9b2ec602069ed2e19cde089be84/miniaudio.h"

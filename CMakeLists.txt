@@ -38,7 +38,6 @@ juce_generate_juce_header(MiniMetersServer)
 if(APPLE)
         target_sources(MiniMetersServer
                 PRIVATE
-                ma_implementation_file.cpp
                 MiniMetersOpener.cpp
                 PluginEditor.cpp
                 MacOsHelpers.mm
@@ -46,7 +45,6 @@ if(APPLE)
 else()
         target_sources(MiniMetersServer
                 PRIVATE
-                ma_implementation_file.cpp
                 MiniMetersOpener.cpp
                 PluginEditor.cpp
                 PluginProcessor.cpp)
