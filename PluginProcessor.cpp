@@ -18,20 +18,6 @@
 #include "windows.h"
 #endif
 
-void AudioPluginAudioProcessor::setup_resampler(double sample_rate) {
-    m_resampler_sr = sample_rate;
-    m_resampler_config = ma_resampler_config_init(ma_format_f32, 2, m_resampler_sr, 44100, ma_resample_algorithm_speex);
-    m_resampler_config.speex.quality = 5;
-
-    ma_result result = ma_resampler_init(&m_resampler_config, &m_resampler);
-    if (result != MA_SUCCESS) {
-        std::cout << "Error loading resampler: " << result << std::endl;
-    }
-}
-void AudioPluginAudioProcessor::close_resampler() {
-    //  ma_resampler_uninit(&m_resampler);
-}
-
 // Note: This is not really a valid UUID. I believe this has 64bits of
 //       randomness which should be sufficient for this plugin, but we might
 //       want to replace it in the future.
@@ -127,8 +113,6 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
                          .withInput("Input", juce::AudioChannelSet::stereo(), true)
                          .withOutput("Output", juce::AudioChannelSet::stereo(), true)) {
     m_uuid_hash = compute_hash(get_uuid());
-    m_resampler_sr = getSampleRate();
-    setup_resampler(m_resampler_sr);
     ipc_setup();
 }
 
@@ -181,10 +165,6 @@ void AudioPluginAudioProcessor::changeProgramName(int index, const juce::String&
 
 void AudioPluginAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
     juce::ignoreUnused(sampleRate, samplesPerBlock);
-    if (m_resampler_sr != sampleRate) {
-        close_resampler();
-        setup_resampler(sampleRate);
-    }
 }
 
 void AudioPluginAudioProcessor::releaseResources() { }
@@ -219,39 +199,34 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     for (int i = n_input_channels; i < n_output_channels; ++i)
         buffer.clear(i, 0, buffer.getNumSamples());
 
-    const int n_samples = buffer.getNumSamples();
+    const size_t n_samples = static_cast<size_t>(buffer.getNumSamples() * 2);
 
     // The DAW should really never send a buffer the larger than 65536 samples, but in the case that it does.
-    if (n_samples >= m_pre_resampling_input.size())
+    if (n_samples >= m_interleaved_audio.size())
         return;
 
     if (n_input_channels == 1) {
         auto ptr_l = buffer.getReadPointer(0);
 
         for (int i = 0; i < n_samples * 2; i += 2) {
-            m_pre_resampling_input[i + 0] = *(ptr_l + (i / 2));
-            m_pre_resampling_input[i + 1] = *(ptr_l + (i / 2));
+            m_interleaved_audio[i + 0] = *(ptr_l + (i / 2));
+            m_interleaved_audio[i + 1] = *(ptr_l + (i / 2));
         }
     } else if (n_input_channels == 2) {
         auto ptr_l = buffer.getReadPointer(0);
         auto ptr_r = buffer.getReadPointer(1);
 
         for (int i = 0; i < n_samples * 2; i += 2) {
-            m_pre_resampling_input[i + 0] = *(ptr_l + (i / 2));
-            m_pre_resampling_input[i + 1] = *(ptr_r + (i / 2));
+            m_interleaved_audio[i + 0] = *(ptr_l + (i / 2));
+            m_interleaved_audio[i + 1] = *(ptr_r + (i / 2));
         }
     }
-
-    ma_uint64 frame_count_in = n_samples;
-    ma_uint64 frame_count_out = 44100;
-    ma_resampler_process_pcm_frames(&m_resampler, &m_pre_resampling_input, &frame_count_in, &m_resampled_output, &frame_count_out);
-    // This temporary only exists for a short time, but the pointer to the
-    // data will be fully read by the time the loop continues.
-
-    for (size_t i = 0; i < frame_count_out * 2; i++) {
-        m_ipc_ptr->buffer.write(m_resampled_output[i]);
+    // FIXME: We need to make the length of the IPC buffer longer to support
+    // higher sample rates.
+    for (size_t i = 0; i < n_samples; i++) {
+        m_ipc_ptr->buffer.write(m_interleaved_audio[i]);
     }
-    m_ipc_ptr->sample_rate = getSampleRate();
+    m_ipc_ptr->sample_rate = static_cast<int>(getSampleRate());
     m_ipc_ptr->block_size = getBlockSize();
 }
 

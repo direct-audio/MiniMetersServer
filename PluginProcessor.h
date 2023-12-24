@@ -102,17 +102,9 @@ public:
     void ipc_setup();
 
 private:
-    // Resampling
-    std::array<float, 65536 * 2> m_resampled_output;
-    std::array<float, 65536 * 2> m_pre_resampling_input;
+    std::array<float, 65536 * 2> m_interleaved_audio;
 
     int64_t m_uuid_hash = 0;
-
-    std::atomic<double> m_resampler_sr = 0;
-    ma_resampler_config m_resampler_config;
-    ma_resampler m_resampler;
-    void setup_resampler(double sample_rate);
-    void close_resampler();
 
     IPC_TYPE* m_ipc_ptr;
 
