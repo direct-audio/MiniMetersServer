@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version" FORCE)
-project(MiniMetersServer VERSION 1.0.7)
+project(MiniMetersServer VERSION 1.0.8)
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_subdirectory(JUCE)
